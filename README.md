@@ -1,6 +1,6 @@
 # HHA504_mysql_vm_vs_managed
 
-# MySQl- Comparing VM (self-maged) and Managed
+# MySQL- Comparing VM (self-maged) and Managed
 
 ## Recording
 
