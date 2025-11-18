@@ -51,12 +51,18 @@ Secrets can be stored in an .env file
 ### VM
 Running VM
 ![Run VM](screenshots/vm/runvm.png)
+
 VM Configs
+![VM configs](screenshots/vm/vmconf.png)
+
+VM Firewall
+![VM Firewall](screenshots/vm/vmfw.png)
+(Name it incorreclty, but port is still correct)
 
 SSH connection to MySQL
-
-Python Script
+![SSH Connection](screenshots/vm/conn.png)
 
 VM Query
+![VM Query](screenshots/vm/vmq.png)
 
 ### Mangaged SQL
