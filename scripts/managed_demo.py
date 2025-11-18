@@ -43,19 +43,63 @@ if missing:
     raise SystemExit(f"Missing required environment variables: {', '.join(missing)}.\nPlease create a .env file with these values and try again.")
 
 # --- 1) Connect to server (no DB) and ensure database exists ---
-server_url = f"mysql+pymysql://{MAN_DB_USER}:{MAN_DB_PASS}@{MAN_DB_HOST}:{MAN_DB_PORT}/{MAN_DB_NAME}"
-print("[STEP 1] Connecting to Managed MySQL (no DB):", server_url.replace(MAN_DB_PASS, "*****"))
+CLOUDSQL_INSTANCE = os.getenv("CLOUDSQL_INSTANCE")
 t0 = time.time()
 
-engine_server = create_engine(server_url, pool_pre_ping=True)
-with engine_server.connect() as conn:
-    conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{MAN_DB_NAME}`"))
-    conn.commit()
-print(f"[OK] Ensured database `{MAN_DB_NAME}` exists on managed instance.")
+if CLOUDSQL_INSTANCE:
+    # Use the Cloud SQL Python Connector when a Cloud SQL instance name is provided.
+    try:
+        from google.cloud.sql.connector import Connector
+    except Exception as e:
+        raise SystemExit(
+            "Cloud SQL Connector not installed. Install with: python -m pip install 'google-cloud-sql-connector[pymysql]'"
+        ) from e
 
-# --- 2) Connect to the target database ---
-db_url = f"mysql+pymysql://{MAN_DB_USER}:{MAN_DB_PASS}@{MAN_DB_HOST}:{MAN_DB_PORT}/{MAN_DB_NAME}"
-engine = create_engine(db_url, pool_pre_ping=True)
+    print(f"[STEP 1] Connecting to Cloud SQL instance {CLOUDSQL_INSTANCE} using Cloud SQL Connector")
+    connector = Connector()
+
+    def get_server_conn():
+        # connection to server (no default database specified)
+        return connector.connect(
+            CLOUDSQL_INSTANCE,
+            "pymysql",
+            user=MAN_DB_USER,
+            password=MAN_DB_PASS,
+        )
+
+    engine_server = create_engine("mysql+pymysql://", creator=get_server_conn, pool_pre_ping=True)
+    with engine_server.connect() as conn:
+        conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{MAN_DB_NAME}`"))
+        conn.commit()
+    print(f"[OK] Ensured database `{MAN_DB_NAME}` exists on managed Cloud SQL instance.")
+
+    # Connect to the target database via the connector (db specified)
+    def get_db_conn():
+        return connector.connect(
+            CLOUDSQL_INSTANCE,
+            "pymysql",
+            user=MAN_DB_USER,
+            password=MAN_DB_PASS,
+            db=MAN_DB_NAME,
+        )
+
+    engine = create_engine("mysql+pymysql://", creator=get_db_conn, pool_pre_ping=True)
+else:
+    # Fallback: regular TCP connection to a host/port
+    server_url = f"mysql+pymysql://{MAN_DB_USER}:{MAN_DB_PASS}@{MAN_DB_HOST}:{MAN_DB_PORT}/{MAN_DB_NAME}"
+    # Construct a masked URL for logging instead of calling .replace() (avoids TypeError if password is None)
+    masked_server_url = f"mysql+pymysql://{MAN_DB_USER}:*****@{MAN_DB_HOST}:{MAN_DB_PORT}/{MAN_DB_NAME}"
+    print("[STEP 1] Connecting to Managed MySQL (no DB):", masked_server_url)
+
+    engine_server = create_engine(server_url, pool_pre_ping=True)
+    with engine_server.connect() as conn:
+        conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{MAN_DB_NAME}`"))
+        conn.commit()
+    print(f"[OK] Ensured database `{MAN_DB_NAME}` exists on managed instance.")
+
+    # --- 2) Connect to the target database ---
+    db_url = f"mysql+pymysql://{MAN_DB_USER}:{MAN_DB_PASS}@{MAN_DB_HOST}:{MAN_DB_PORT}/{MAN_DB_NAME}"
+    engine = create_engine(db_url, pool_pre_ping=True)
 
 # --- 3) Create a DataFrame and write to a table ---
 table_name = "visits"
