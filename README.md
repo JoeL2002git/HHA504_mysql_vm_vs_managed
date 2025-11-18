@@ -50,7 +50,7 @@ Secrets can be stored in an .env file
 ## Screenshots
 ### VM
 Running VM
-
+![Run VM](screenshots/vm/runvm.png)
 VM Configs
 
 SSH connection to MySQL
