@@ -3,6 +3,7 @@
 # MySQL- Comparing VM (self-maged) and Managed
 
 ## Recording
+Loom Recording <https://www.loom.com/share/ebb323972acc4c58bbd760455f71f561>
 
 ## Chosen platform
 Google VM and Cloud SQL database
