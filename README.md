@@ -65,7 +65,7 @@ SSH connection to MySQL
 VM Query
 ![VM Query](screenshots/vm/vmq.png)
 
-### Mangaged SQL
+### Managed SQL
 Running Managed Cloud SQL
 ![Running Cloud SQL](screenshots/managed/runm.png)
 
