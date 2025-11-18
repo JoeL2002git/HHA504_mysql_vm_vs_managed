@@ -66,3 +66,11 @@ VM Query
 ![VM Query](screenshots/vm/vmq.png)
 
 ### Mangaged SQL
+Running Managed Cloud SQL
+![Running Cloud SQL](screenshots/managed/runm.png)
+
+Network Authorized List
+![Network](screenshots/managed/networkm.png)
+
+Managed Cloud SQL Query
+![Cloud SQL Query](screenshots/managed/managedq.png)
