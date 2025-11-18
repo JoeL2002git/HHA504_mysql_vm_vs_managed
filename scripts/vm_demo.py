@@ -17,6 +17,7 @@ from pathlib import Path
 env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=str(env_path), override=True) # reads .env in current working directory
 
+
 VM_DB_HOST = os.getenv("VM_DB_HOST")
 VM_DB_PORT = os.getenv("VM_DB_PORT")
 VM_DB_USER = os.getenv("VM_DB_USER")
@@ -28,9 +29,25 @@ print("[ENV] VM_DB_PORT:", VM_DB_PORT)
 print("[ENV] VM_DB_USER:", VM_DB_USER)
 print("[ENV] VM_DB_NAME:", VM_DB_NAME)
 
+# Validate required environment variables early and fail fast with a helpful message.
+missing = [
+    name for name, val in (
+        ("VM_DB_HOST", VM_DB_HOST),
+        ("VM_DB_PORT", VM_DB_PORT),
+        ("VM_DB_USER", VM_DB_USER),
+        ("VM_DB_PASS", VM_DB_PASS),
+        ("VM_DB_NAME", VM_DB_NAME),
+    )
+    if not val
+]
+if missing:
+    raise SystemExit(f"Missing required environment variables: {', '.join(missing)}.\nPlease create a .env file with these values and try again.")
+
 # --- 1) Connect to server (no DB) and ensure database exists ---
 server_url = f"mysql+pymysql://{VM_DB_USER}:{VM_DB_PASS}@{VM_DB_HOST}:{VM_DB_PORT}/{VM_DB_NAME}"
-print("[STEP 1] Connecting to MySQL server (no DB):", server_url.replace(VM_DB_PASS, "*****"))
+# Construct a masked URL for logging instead of calling .replace() (avoids TypeError if password is None)
+masked_server_url = f"mysql+pymysql://{VM_DB_USER}:*****@{VM_DB_HOST}:{VM_DB_PORT}/{VM_DB_NAME}"
+print("[STEP 1] Connecting to MySQL server (no DB):", masked_server_url)
 t0 = time.time()
 
 engine_server = create_engine(server_url, pool_pre_ping=True)
@@ -42,7 +59,8 @@ print(f"[OK] Ensured database `{VM_DB_NAME}` exists.")
 # --- 2) Connect to the target database ---
 #### ignore ssl_connection for VM setup
 db_url = f"mysql+pymysql://{VM_DB_USER}:{VM_DB_PASS}@{VM_DB_HOST}:{VM_DB_PORT}/{VM_DB_NAME}"
-engine = create_engine(db_url)
+# Use pool_pre_ping to make connections more robust to dropped connections
+engine = create_engine(db_url, pool_pre_ping=True)
 
 # --- 3) Create a DataFrame and write to a table ---
 table_name = "visits"

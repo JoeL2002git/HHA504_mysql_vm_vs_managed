@@ -28,6 +28,20 @@ print("[ENV] MAN_DB_PORT:", MAN_DB_PORT)
 print("[ENV] MAN_DB_USER:", MAN_DB_USER)
 print("[ENV] MAN_DB_NAME:", MAN_DB_NAME)
 
+# Validate required environment variables early and fail fast with a helpful message.
+missing = [
+    name for name, val in (
+        ("MAN_DB_HOST", MAN_DB_HOST),
+        ("MAN_DB_PORT", MAN_DB_PORT),
+        ("MAN_DB_USER", MAN_DB_USER),
+        ("MAN_DB_PASS", MAN_DB_PASS),
+        ("MAN_DB_NAME", MAN_DB_NAME),
+    )
+    if not val
+]
+if missing:
+    raise SystemExit(f"Missing required environment variables: {', '.join(missing)}.\nPlease create a .env file with these values and try again.")
+
 # --- 1) Connect to server (no DB) and ensure database exists ---
 server_url = f"mysql+pymysql://{MAN_DB_USER}:{MAN_DB_PASS}@{MAN_DB_HOST}:{MAN_DB_PORT}/{MAN_DB_NAME}"
 print("[STEP 1] Connecting to Managed MySQL (no DB):", server_url.replace(MAN_DB_PASS, "*****"))
