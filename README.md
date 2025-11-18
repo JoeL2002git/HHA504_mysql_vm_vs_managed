@@ -5,6 +5,7 @@
 ## Recording
 
 ## Chosen platform
+Google VM and Cloud SQL database
 
 ## VM Set Up
 ### Creating VM
@@ -31,4 +32,31 @@
 7. Restart SSH to save the change
 8. Input `mysql -u dba -p` to login
 
+Secrets can be stored in an .env file
 
+## Managed Cloud SQL
+### Creating Cloud SQL
+1. Create a sandbox MySQL instance
+2. Name instance and set a password
+3. Select a region and create
+
+### Network Configs
+1. Add 0.0.0.0/0 to allow all network
+2. Disable SSL only connection
+3. Create a new user and set a passowrd
+
+Secrets can be stored in an .env file
+
+## Screenshots
+### VM
+Running VM
+
+VM Configs
+
+SSH connection to MySQL
+
+Python Script
+
+VM Query
+
+### Mangaged SQL
